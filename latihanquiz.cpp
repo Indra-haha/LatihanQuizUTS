@@ -80,6 +80,9 @@ int main()
             cin >> kembali;
             break;
         case 5:
+            perbaruiStatus();
+            printf("Kembali ke menu [y/n] : ");
+            cin >> kembali;
             break;
         case 6:
             break;
@@ -168,6 +171,7 @@ int tampil()
             printf("Kategori : %s\n", tugas[k].kategori);
             printf("Deadline  : %d-%d-%d\n", tugas[k].tenggat.tgl, tugas[k].tenggat.bln, tugas[k].tenggat.thn);
             printf("Status   : %s\n", tugas[k].status);
+            printf("\n");
         }
         return 0;
     }
@@ -250,13 +254,46 @@ int tampilLewatDeadline()
             }
         }
     }
-
     fclose(file);
     return 0;
 }
 
 int perbaruiStatus()
 {
+    FILE *file = fopen("WorkTracker.dat", "r+b"); // mode baca dan tulis dalam format biner
+    if (file == NULL)
+    {
+        printf("Gagal membuka file!!!\n");
+        return 1;
+    }
+
+    char tugasCari[100];
+    printf("Masukkan nama tugas yang ingin diperbarui : ");
+    cin.ignore();
+    cin.getline(tugasCari, sizeof(tugasCari));
+
+    data tugas;
+
+    bool ditemukan = false;
+
+    while (fread(&tugas, sizeof(data), 1, file))
+    {
+        if (strcmp(tugas.nama, tugasCari) == 0)
+        {
+            printf("Tugas ditemukan.\n");
+            strcpy(tugas.status, "Selesai");
+            fseek(file, -sizeof(data), SEEK_CUR);
+            fwrite(&tugas, sizeof(data), 1, file);
+            ditemukan = true;
+            break;
+        }
+    }
+
+    if (!ditemukan)
+    {
+        printf("Tugas tidak ada.\n");
+    }
+    fclose(file);
     return 0;
 }
 
