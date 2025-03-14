@@ -75,6 +75,9 @@ int main()
             cin >> kembali;
             break;
         case 4:
+            tampilLewatDeadline();
+            printf("Kembali ke menu [y/n] : ");
+            cin >> kembali;
             break;
         case 5:
             break;
@@ -115,7 +118,7 @@ int tambah()
         printf("Masukkan Tgl Deadline (DD/MM/YYYY) : ");
         cin >> tugas.tenggat.tgl >> tugas.tenggat.bln >> tugas.tenggat.thn;
         cin.ignore();
-        strcpy(tugas.status, "Belum");
+        strcpy(tugas.status, "Belum Selesai");
         fwrite(&tugas, sizeof(data), 1, file);
         printf("Tugas berhasil ditambahkan.\n");
         fclose(file);
@@ -170,7 +173,7 @@ int tampil()
     }
 }
 
-int cari() 
+int cari()
 {
     FILE *file = fopen("WorkTracker.dat", "rb");
     if (file == NULL)
@@ -183,7 +186,7 @@ int cari()
     printf("Masukkan kategori yang anda cari : ");
     cin.ignore();
     cin.getline(cariKategori, sizeof(cariKategori));
-    printf("%s",cariKategori);
+    printf("%s", cariKategori);
     system("pause");
     data tugas;
     bool ditemukan = false;
@@ -210,6 +213,45 @@ int cari()
 
 int tampilLewatDeadline()
 {
+    FILE *file = fopen("WorkTracker.dat", "rb");
+    if (file == NULL)
+    {
+        printf("Gagal membuka file!!!\n");
+        return 1;
+    }
+
+    time_t now = time(0); // untuk menangkap waktu saat ini
+    struct tm *saatIni = localtime(&now);
+    int tahunNow = 1900 + saatIni->tm_year;
+    int bulanNow = 1 + saatIni->tm_mon;
+    int hariNow = saatIni->tm_mday;
+
+    data tugas;
+    bool tugasLewat = false;
+
+    while (fread(&tugas, sizeof(data), 1, file))
+    {
+        if (tugas.tenggat.thn < tahunNow ||
+            (tugas.tenggat.thn == tahunNow && tugas.tenggat.bln < bulanNow) ||
+            (tugas.tenggat.thn == tahunNow && tugas.tenggat.bln == bulanNow && tugas.tenggat.tgl < hariNow))
+        {
+            if (strcmp(tugas.status, "Belum Selesai") == 0)
+            {
+                if (!tugasLewat)
+                {
+                    printf("Upss...Ada Tugas melebihi deadline.\n");
+                    tugasLewat = true;
+                }
+                printf("Tugas    : %s\n", tugas.nama);
+                printf("Kategori : %s\n", tugas.kategori);
+                printf("Deadline : %02d-%02d-%04d\n", tugas.tenggat.tgl, tugas.tenggat.bln, tugas.tenggat.thn);
+                printf("Status   : %s\n", tugas.status);
+                printf("\n");
+            }
+        }
+    }
+
+    fclose(file);
     return 0;
 }
 
