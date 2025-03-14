@@ -284,6 +284,7 @@ int perbaruiStatus()
             strcpy(tugas.status, "Selesai");
             fseek(file, -sizeof(data), SEEK_CUR);
             fwrite(&tugas, sizeof(data), 1, file);
+            printf("Tugas telah diperbarui.\n");
             ditemukan = true;
             break;
         }
@@ -299,5 +300,61 @@ int perbaruiStatus()
 
 int hapusTugas()
 {
+    FILE *file = fopen("WorkTracker.dat", "rb");
+
+    if(file == NULL)
+    {
+        printf("Gagal membuka file!!!\n");
+        return 1;
+    }
+    FILE *tempFile = fopen("temp.dat", "wb");
+    if (tempFile == NULL)
+    {
+        printf("Gagal membuka file sementara!!!\n");
+        fclose(file);
+        return 1;
+    }
+
+    char tugas[100];
+    printf("Masukkan nama tugas yg ingin dihapus : ");
+    cin.ignore();
+    cin.getline(tugas,sizeof(tugas));
+
+    data tugas;
+    bool ditemukan = false;
+    while (fread(&tugas, sizeof(data), 1, file))
+    {
+        if (strcmp(tugas.nama, tugas) == 0) //membandingkan 2 string 
+        {
+            if (strcmp(tugas.status, "Selesai") == 0) //membandingkan 2 string
+            {
+                ditemukan = true;
+            }
+            else
+            {
+                fwrite(&tugas, sizeof(data), 1, tempFile); //menyalin data ke file sementara jika string status tidak sama dgn Selesai
+            }
+
+        }
+        else
+        {
+            fwrite(&tugas, sizeof(data), 1, tempFile); //menyailin data ke file sementara jika string nama tugas tidak sama dgn yg di input
+        }
+    }
+
+    fclose(file);
+    fclose(tempFile);
+
+    if (tugasDitemukan)
+    {
+        remove("WorkTracker.dat");
+        rename("temp.dat", "WorkTracker.dat");
+        printf("Tugas berhasil dihapus.\n");
+    }
+    else
+    {
+        remove("temp.dat");
+        printf("Tugas tidak ada atau belum selesai.\n");
+    }
     return 0;
 }
