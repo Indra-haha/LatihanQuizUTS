@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctime>
 
 using namespace std;
 
@@ -14,10 +15,10 @@ struct deadline
 
 struct data
 {
-    char namaTugas[100];  // Menggunakan array char untuk namaTugas
-    char kategori[50];    // Menggunakan array char untuk kategori
+    char nama[100];
+    char kategori[50];
     struct deadline tenggat;
-    char status[20];      // Menggunakan array char untuk status
+    char status[20];
 };
 
 int tambah();
@@ -100,30 +101,26 @@ int tambah()
     }
     else
     {
+        data tugas;
         printf("Masukkan Nama Tugas                : ");
         cin.ignore();
-        cin.getline(tugas.namaTugas, sizeof(tugas.namaTugas));  // Menggunakan cin.getline untuk array char
+        cin.getline(tugas.nama, sizeof(tugas.nama));
         printf("Masukan Kategori tugas             : ");
-        cin.getline(tugas.kategori, sizeof(tugas.kategori));  // Menggunakan cin.getline untuk array char
-        printf("Masukkan Tgl Deadline (DD MM YYYY) : ");
-        cin >> tenggat.tgl >> tenggat.bln >> tenggat.thn;
+        cin.getline(tugas.kategori, sizeof(tugas.kategori));
+        printf("Masukkan Tgl Deadline (DD/MM/YYYY) : ");
+        cin >> tugas.tenggat.tgl >> tugas.tenggat.bln >> tugas.tenggat.thn;
         cin.ignore();
-        printf("Masukkan status tugas              : ");
-        cin.getline(tugas.status, sizeof(tugas.status));  // Menggunakan cin.getline untuk array char
-        if (fwrite(&tugas, sizeof(struct data), 1, file) != 1)
-        {
-            printf("Gagal menulis data ke file.\n");
-            fclose(file);
-            return 1;
-        }
+        strcpy(tugas.status, "Belum");
+        fwrite(&tugas, sizeof(data), 1, file);
         printf("Tugas berhasil ditambahkan.\n");
         fclose(file);
+        return 0;
     }
-    return 0;
 }
 
 int tampil()
 {
+
     FILE *file = fopen("C:\\Temp\\WorkTracker.dat", "rb");
     if (file == NULL)
     {
@@ -132,20 +129,77 @@ int tampil()
     }
     else
     {
-        while (fread(&tugas, sizeof(struct data), 1, file) == 1)
+        data tugas[200];
+        int indeks = 0;
+        while (fread(&tugas[indeks], sizeof(data), 1, file))
         {
-            printf("Tugas      : %s\n", tugas.namaTugas);
-            printf("Kategori   : %s\n", tugas.kategori);
-            printf("Deadline   : %02d-%02d-%04d\n", tugas.tenggat.tgl, tugas.tenggat.bln, tugas.tenggat.thn);  // Format tanggal
-            printf("Status     : %s\n", tugas.status);
+            indeks++;
         }
         fclose(file);
+
+        // urutin data descending
+        for (int i = 0; i < indeks - 1; i++)
+        {
+            for (int j = i + 1; j < indeks; j++)
+            {
+                if (tugas[i].tenggat.thn > tugas[j].tenggat.thn ||
+                    (tugas[i].tenggat.thn == tugas[j].tenggat.thn && tugas[i].tenggat.bln > tugas[j].tenggat.bln) ||
+                    (tugas[i].tenggat.thn == tugas[j].tenggat.thn && tugas[i].tenggat.bln == tugas[j].tenggat.bln && tugas[i].tenggat.tgl > tugas[j].tenggat.tgl))
+                {
+                    data temp = tugas[i];
+                    tugas[i] = tugas[j];
+                    tugas[j] = temp;
+                }
+            }
+        }
+
+        // menampilkan data
+        for (int k = 0; k < indeks; k++)
+        {
+            printf("Tugas : %s\n", tugas[k].nama);
+            printf("Kategori : %s\n", tugas[k].kategori);
+            printf("Deadline  : %d-%d-%d\n", tugas[k].tenggat.tgl, tugas[k].tenggat.bln, tugas[k].tenggat.thn);
+            printf("Status   : %s\n", tugas[k].status);
+        }
+        return 0;
     }
-    return 0;
 }
 
 int cari()
 {
+    FILE *file = fopen("C:\\Temp\\WorkTracker.dat", "ab");
+    if (file == NULL)
+    {
+        printf("Gagal membuka file!!!\n");
+        return 1;
+    }
+
+    char kategori[50];
+    printf("Masukkan kategori yang anda cari : ");
+    cin.ignore();
+    cin.getline(kategori, sizeof(kategori));
+
+    data tugas;
+    bool ditemukan = false;
+
+    while (fread(&tugas, sizeof(data), 1, file))
+    {
+        if (tugas.kategori == kategori)
+        {
+            printf("Tugas: %s\n", tugas.nama);
+            printf("Kategori: %s\n", tugas.kategori);
+            printf("Deadline: %02d-%02d-%04d\n", tugas.tenggat.tgl, tugas.tenggat.bln, tugas.tenggat.thn);
+            printf("Status: %s\n\n", tugas.status);
+            ditemukan = true;
+        }
+    }
+
+    if (!ditemukan)
+    {
+        printf("Tugas dalam kategori ini tidak ada\n");
+    }
+
+    fclose(file);
     return 0;
 }
 
@@ -154,4 +208,12 @@ int tampilLewatDeadline()
     return 0;
 }
 
-int
+int perbaruiStatus()
+{
+    return 0;
+}
+
+int hapusTugas()
+{
+    return 0;
+}
