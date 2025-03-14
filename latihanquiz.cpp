@@ -16,7 +16,7 @@ struct deadline
 struct data
 {
     char nama[100];
-    char kategori[50];
+    char kategori[100];
     struct deadline tenggat;
     char status[20];
 };
@@ -70,6 +70,9 @@ int main()
             cin >> kembali;
             break;
         case 3:
+            cari();
+            printf("Kembali ke menu [y/n] : ");
+            cin >> kembali;
             break;
         case 4:
             break;
@@ -93,7 +96,7 @@ int main()
 
 int tambah()
 {
-    FILE *file = fopen("C:\\Temp\\WorkTracker.dat", "ab");
+    FILE *file = fopen("WorkTracker.dat", "ab");
     if (file == NULL)
     {
         printf("Anda Gagal membuka file!!!\n");
@@ -102,9 +105,11 @@ int tambah()
     else
     {
         data tugas;
+        char namaTugas[100];
         printf("Masukkan Nama Tugas                : ");
         cin.ignore();
-        cin.getline(tugas.nama, sizeof(tugas.nama));
+        cin.getline(namaTugas, sizeof(namaTugas));
+        strcpy(tugas.nama, namaTugas);
         printf("Masukan Kategori tugas             : ");
         cin.getline(tugas.kategori, sizeof(tugas.kategori));
         printf("Masukkan Tgl Deadline (DD/MM/YYYY) : ");
@@ -121,7 +126,7 @@ int tambah()
 int tampil()
 {
 
-    FILE *file = fopen("C:\\Temp\\WorkTracker.dat", "rb");
+    FILE *file = fopen("WorkTracker.dat", "rb");
     if (file == NULL)
     {
         printf("Anda gagal membuka file!!!");
@@ -165,26 +170,26 @@ int tampil()
     }
 }
 
-int cari()
+int cari() 
 {
-    FILE *file = fopen("C:\\Temp\\WorkTracker.dat", "ab");
+    FILE *file = fopen("WorkTracker.dat", "rb");
     if (file == NULL)
     {
         printf("Gagal membuka file!!!\n");
         return 1;
     }
 
-    char kategori[50];
+    char cariKategori[100];
     printf("Masukkan kategori yang anda cari : ");
     cin.ignore();
-    cin.getline(kategori, sizeof(kategori));
-
+    cin.getline(cariKategori, sizeof(cariKategori));
+    printf("%s",cariKategori);
+    system("pause");
     data tugas;
     bool ditemukan = false;
-
     while (fread(&tugas, sizeof(data), 1, file))
     {
-        if (tugas.kategori == kategori)
+        if (strcmp(tugas.kategori, cariKategori) == 0)
         {
             printf("Tugas: %s\n", tugas.nama);
             printf("Kategori: %s\n", tugas.kategori);
